@@ -23,10 +23,14 @@ public static class UserEndpoints
                 return Results.NotFound();
             }
 
-            var token = jwtTokenGenerator.GenerateToken(userExist);
+            if (BC.Verify(request.Password, hash: userExist.Password))
+            {
+                var token = jwtTokenGenerator.GenerateToken(userExist);
+                return Results.Ok(token);
 
-            return Results.Ok(token);
+            }
 
+            return Results.BadRequest("El usuario y/o contrasena es incorrecto.");
 
         }).WithTags(Tags.Users);
 
