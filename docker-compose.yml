@@ -1,16 +1,9 @@
 services:
-  worker-ams:
-    image: ${DOCKER_REGISTRY-}workerams
-    build:
-      context: .
-      dockerfile: Worker-Ams/Dockerfile
-    # ports:
-    #   - 6000:8080
-
   worker.database:
     image: postgres:latest
     container_name: worker.Database
     environment:
+      - DATABASE_HOST=127.0.0.1
       - POSTGRES_DB=ams
       - POSTGRES_USER=worker
       - POSTGRES_PASSWORD=pass123456
@@ -18,3 +11,13 @@ services:
       - ./.containers/db:/var/lib/postgresql/data
     ports:
       - 5432:5432
+
+  worker-ams:
+    image: ${DOCKER_REGISTRY-}workerams
+    build:
+      context: .
+      dockerfile: Worker-Ams/Dockerfile
+    depends_on:
+      worker.database:
+        condition: service_started
+
