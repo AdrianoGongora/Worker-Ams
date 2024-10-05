@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+using Worker_Ams.Authentication;
 using Worker_Ams.Database;
 using Worker_Ams.Endpoints;
 using Worker_Ams.Exntensions;
@@ -15,7 +15,8 @@ const string cors = "Cors";
 string databaseConnectionString = builder.Configuration.GetConnectionString("Database")!;
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen()
+    .AddAuthentication(builder.Configuration);
 
 builder.Services.AddCors(options =>
 {
@@ -35,6 +36,8 @@ builder.Services.AddDbContext<ApplicationDbContext>((options) =>
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection(JwtSettings.SectionName));
 
+builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IMotorRepository, MotorRepository>();
 builder.Services.AddScoped<IDatosRepository, DatosRepository>();
@@ -42,15 +45,27 @@ builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
 builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("Kafka"));
 
+builder.Services.AddHostedService<Consumer>();
+
 var app = builder.Build();
 
 app.UseSwagger();
+
 app.UseSwaggerUI();
+
 app.MapUserEndpoints();
+
 app.MapMotorEndpoints();
+
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
+
+app.UseAuthorization();
+
 app.ApplyMigrations();
+
+app.UseCors(cors);
 
 app.Run();
 

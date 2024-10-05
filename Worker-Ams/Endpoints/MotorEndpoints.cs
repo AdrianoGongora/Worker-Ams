@@ -25,7 +25,9 @@ public static class MotorEndpoints
             await motorRepository.SaveAsync(motor, cancellationToken);
 
             return Results.Ok(motor);
-        }).WithTags(Tags.Motores);
+        })
+        .RequireAuthorization()
+        .WithTags(Tags.Motores);
 
         app.MapPut("api/motores", async (
             UpdateMotorRequest request,
@@ -49,7 +51,9 @@ public static class MotorEndpoints
             await dbContext.SaveChangesAsync();
 
             return Results.Ok();
-        }).WithTags(Tags.Motores);
+        })
+        .RequireAuthorization()
+        .WithTags(Tags.Motores);
 
         app.MapGet("api/motores", async (
             IMotorRepository motorRepository) =>
@@ -73,7 +77,9 @@ public static class MotorEndpoints
             }
 
             return Results.Ok(motorExists);
-        }).WithTags(Tags.Motores);
+        })
+        .RequireAuthorization()
+        .WithTags(Tags.Motores);
 
         app.MapDelete("api/motores/{motorId}", async (
             int motorId,
@@ -91,6 +97,8 @@ public static class MotorEndpoints
             await motorRepository.DeleteAsync(motorExists, cancellationToken);
 
             return Results.Ok(motorExists);
-        }).WithTags(Tags.Motores);
+        })
+        .RequireAuthorization()
+        .WithTags(Tags.Motores);
     }
 }

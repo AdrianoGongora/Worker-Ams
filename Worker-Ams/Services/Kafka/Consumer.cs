@@ -1,30 +1,30 @@
 using System.Text.Json;
 using Confluent.Kafka;
+using Microsoft.Extensions.Options;
 using Worker_Ams.Entities;
 using Worker_Ams.Repositories.Datos;
-using Worker_Ams.Services.Kafka;
 
-namespace Worker.Services.Kafka;
+namespace Worker_Ams.Services.Kafka;
 
-public class Consumer(KafkaSettings kafkaSettings, IDatosRepository datosRepository)
+public class Consumer(IOptions<KafkaSettings> kafkaSettings, IServiceProvider serviceProvider) : BackgroundService
 {
-    private readonly KafkaSettings kafkaSettings = kafkaSettings;
-    private readonly IDatosRepository _datosRepository = datosRepository;
+    private readonly KafkaSettings _kafkaSettings = kafkaSettings.Value;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly int _batchSize = 100;
     private DateTime _lastMessageTime = DateTime.UtcNow;
-    private List<Dato> _datosList = [];
+    private readonly List<Dato> _datosList = [];
 
-    public async Task StartConsumingAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         var config = new ConsumerConfig
         {
-            BootstrapServers = kafkaSettings.BootstrapServers,
+            BootstrapServers = _kafkaSettings.BootstrapServers,
             GroupId = "test-bobis",
             AutoOffsetReset = AutoOffsetReset.Earliest,
         };
 
         using var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
-        consumer.Subscribe(kafkaSettings.Topic);
+        consumer.Subscribe(_kafkaSettings.Topic);
 
         try
         {
@@ -33,13 +33,10 @@ public class Consumer(KafkaSettings kafkaSettings, IDatosRepository datosReposit
                 try
                 {
                     var consumeResult = consumer.Consume(cancellationToken);
-
-                    // Procesar el mensaje recibido
                     var dato = ParseMessage(consumeResult.Message.Value);
                     _datosList.Add(dato);
-                    _lastMessageTime = DateTime.UtcNow; // Actualizamos el tiempo del último mensaje recibido
+                    _lastMessageTime = DateTime.UtcNow;
 
-                    // Si alcanzamos el límite de batch, hacemos el bulk insert
                     if (_datosList.Count >= _batchSize)
                     {
                         await InsertPendingMessagesAsync();
@@ -48,6 +45,11 @@ public class Consumer(KafkaSettings kafkaSettings, IDatosRepository datosReposit
                 catch (ConsumeException e)
                 {
                     Console.WriteLine($"Error consumiendo mensaje: {e.Error.Reason}");
+                }
+
+                if (DateTime.UtcNow - _lastMessageTime > TimeSpan.FromSeconds(10))
+                {
+                    await InsertPendingMessagesAsync();
                 }
             }
         }
@@ -61,7 +63,11 @@ public class Consumer(KafkaSettings kafkaSettings, IDatosRepository datosReposit
     {
         if (_datosList.Count > 0)
         {
-            await _datosRepository.BulkInsertDatosAsync(_datosList);
+            // Crear un nuevo scope para el repositorio
+            using var scope = _serviceProvider.CreateScope();
+            var datosRepository = scope.ServiceProvider.GetRequiredService<IDatosRepository>();
+
+            await datosRepository.BulkInsertDatosAsync(_datosList);
             _datosList.Clear(); // Limpiar la lista después del insert
             Console.WriteLine("Mensajes insertados en la base de datos.");
         }
@@ -69,8 +75,6 @@ public class Consumer(KafkaSettings kafkaSettings, IDatosRepository datosReposit
 
     private static Dato ParseMessage(string message)
     {
-        // Aquí puedes implementar la lógica de parsing según el formato de los datos de tu Excel
-        // Por ejemplo, si los datos vienen en formato JSON:
         var dato = JsonSerializer.Deserialize<Dato>(message);
         return dato!;
     }

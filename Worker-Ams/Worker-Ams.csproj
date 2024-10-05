@@ -22,6 +22,7 @@
 	  <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.3.1" />
 	  <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 	  <PackageReference Include="Confluent.Kafka" Version="2.5.3" />
+	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.2" />
   </ItemGroup>
 
 </Project>
