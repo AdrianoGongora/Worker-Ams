@@ -6,25 +6,38 @@ using Worker_Ams.Repositories.Datos;
 
 namespace Worker_Ams.Services.Kafka;
 
-public class Consumer(IOptions<KafkaSettings> kafkaSettings, IServiceProvider serviceProvider) : BackgroundService
+public class Consumer : BackgroundService
 {
-    private readonly KafkaSettings _kafkaSettings = kafkaSettings.Value;
-    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly KafkaSettings _kafkaSettings;
+    private readonly IServiceProvider _serviceProvider;
     private readonly int _batchSize = 100;
     private DateTime _lastMessageTime = DateTime.UtcNow;
-    private readonly List<Dato> _datosList = [];
+    private readonly List<Dato> _datosList = new List<Dato>();
+    private readonly IConsumer<Ignore, string> _consumer;
 
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    public Consumer(IOptions<KafkaSettings> kafkaSettings, IServiceProvider serviceProvider)
     {
-        var config = new ConsumerConfig
+        _kafkaSettings = kafkaSettings.Value;
+        _serviceProvider = serviceProvider;
+
+        var consumerConfig = new ConsumerConfig
         {
             BootstrapServers = _kafkaSettings.BootstrapServers,
             GroupId = "test-bobis",
-            AutoOffsetReset = AutoOffsetReset.Earliest,
+            AutoOffsetReset = AutoOffsetReset.Earliest
         };
 
-        using var consumer = new ConsumerBuilder<Ignore, string>(config).Build();
-        consumer.Subscribe(_kafkaSettings.Topic);
+        _consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();
+    }
+
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        return Task.Run(() => StartConsumerLoop(stoppingToken), stoppingToken);
+    }
+
+    private async Task StartConsumerLoop(CancellationToken cancellationToken)
+    {
+        _consumer.Subscribe(_kafkaSettings.Topic);
 
         try
         {
@@ -32,15 +45,16 @@ public class Consumer(IOptions<KafkaSettings> kafkaSettings, IServiceProvider se
             {
                 try
                 {
-                    var consumeResult = consumer.Consume(cancellationToken);
-                    var dato = ParseMessage(consumeResult.Message.Value);
-                    _datosList.Add(dato);
-                    _lastMessageTime = DateTime.UtcNow;
+                    var consumeResult = _consumer.Consume(cancellationToken);
+                    Console.WriteLine(consumeResult.Message.Value);
+                    //var dato = ParseMessage(consumeResult.Message.Value);
+                    //_datosList.Add(dato);
+                    //_lastMessageTime = DateTime.UtcNow;
 
-                    if (_datosList.Count >= _batchSize)
-                    {
-                        await InsertPendingMessagesAsync();
-                    }
+                    //if (_datosList.Count >= _batchSize)
+                    //{
+                    //    await InsertPendingMessagesAsync();
+                    //}
                 }
                 catch (ConsumeException e)
                 {
@@ -55,7 +69,7 @@ public class Consumer(IOptions<KafkaSettings> kafkaSettings, IServiceProvider se
         }
         catch (OperationCanceledException)
         {
-            consumer.Close();
+            _consumer.Close();
         }
     }
 
@@ -63,19 +77,24 @@ public class Consumer(IOptions<KafkaSettings> kafkaSettings, IServiceProvider se
     {
         if (_datosList.Count > 0)
         {
-            // Crear un nuevo scope para el repositorio
             using var scope = _serviceProvider.CreateScope();
             var datosRepository = scope.ServiceProvider.GetRequiredService<IDatosRepository>();
 
             await datosRepository.BulkInsertDatosAsync(_datosList);
-            _datosList.Clear(); // Limpiar la lista después del insert
+            _datosList.Clear();
             Console.WriteLine("Mensajes insertados en la base de datos.");
         }
     }
 
     private static Dato ParseMessage(string message)
     {
-        var dato = JsonSerializer.Deserialize<Dato>(message);
-        return dato!;
+        return JsonSerializer.Deserialize<Dato>(message)!;
+    }
+
+    public override void Dispose()
+    {
+        _consumer.Close();
+        _consumer.Dispose();
+        base.Dispose();
     }
 }
