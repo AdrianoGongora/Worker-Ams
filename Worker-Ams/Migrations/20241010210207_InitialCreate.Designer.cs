@@ -11,7 +11,7 @@ using Worker_Ams.Database;
 namespace Worker_Ams.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241005074417_InitialCreate")]
+    [Migration("20241010210207_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -49,10 +49,8 @@ namespace Worker_Ams.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                    b.Property<decimal>("Value")
+                        .HasColumnType("decimal(18,9)");
 
                     b.HasKey("Id");
 

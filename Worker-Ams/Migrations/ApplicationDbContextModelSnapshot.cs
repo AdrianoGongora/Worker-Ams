@@ -46,10 +46,8 @@ namespace Worker_Ams.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                    b.Property<decimal>("Value")
+                        .HasColumnType("decimal(18,9)");
 
                     b.HasKey("Id");
 

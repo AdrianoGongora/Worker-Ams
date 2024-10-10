@@ -49,7 +49,7 @@ namespace Worker_Ams.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     MotorId = table.Column<int>(type: "integer", nullable: false),
-                    Value = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Value = table.Column<decimal>(type: "numeric(18,16)", nullable: false),
                     Axis = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Medicion = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
                     Timestamp = table.Column<string>(type: "text", nullable: false)

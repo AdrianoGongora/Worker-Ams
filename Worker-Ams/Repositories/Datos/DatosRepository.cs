@@ -6,8 +6,8 @@ namespace Worker_Ams.Repositories.Datos;
 
 public class DatosRepository(ApplicationDbContext dbContext) : IDatosRepository
 {
-    public async Task BulkInsertDatosAsync(List<Dato> datos)
+    public async Task BulkInsertDatosAsync(List<Dato> datos, CancellationToken cancellationToken)
     {
-        await dbContext.BulkInsertAsync(datos);
+        await dbContext.BulkInsertAsync(datos, cancellationToken: cancellationToken);
     }
 }

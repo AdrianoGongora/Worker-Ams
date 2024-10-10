@@ -10,7 +10,7 @@ public class Consumer : BackgroundService
 {
     private readonly KafkaSettings _kafkaSettings;
     private readonly IServiceProvider _serviceProvider;
-    private readonly int _batchSize = 100;
+    private readonly int _batchSize = 5;
     private DateTime _lastMessageTime = DateTime.UtcNow;
     private readonly List<Dato> _datosList = new List<Dato>();
     private readonly IConsumer<Ignore, string> _consumer;
@@ -46,15 +46,15 @@ public class Consumer : BackgroundService
                 try
                 {
                     var consumeResult = _consumer.Consume(cancellationToken);
-                    Console.WriteLine(consumeResult.Message.Value);
-                    //var dato = ParseMessage(consumeResult.Message.Value);
-                    //_datosList.Add(dato);
-                    //_lastMessageTime = DateTime.UtcNow;
+                    var dato = ParseMessage(consumeResult.Message.Value);
+                    Console.WriteLine($"{dato.Value} {dato.Timestamp}");
+                    _datosList.Add(dato);
+                    _lastMessageTime = DateTime.UtcNow;
 
-                    //if (_datosList.Count >= _batchSize)
-                    //{
-                    //    await InsertPendingMessagesAsync();
-                    //}
+                    if (_datosList.Count >= _batchSize)
+                    {
+                        await InsertPendingMessagesAsync(cancellationToken);
+                    }
                 }
                 catch (ConsumeException e)
                 {
@@ -63,7 +63,7 @@ public class Consumer : BackgroundService
 
                 if (DateTime.UtcNow - _lastMessageTime > TimeSpan.FromSeconds(10))
                 {
-                    await InsertPendingMessagesAsync();
+                    await InsertPendingMessagesAsync(cancellationToken);
                 }
             }
         }
@@ -73,16 +73,15 @@ public class Consumer : BackgroundService
         }
     }
 
-    private async Task InsertPendingMessagesAsync()
+    private async Task InsertPendingMessagesAsync(CancellationToken cancellationToken)
     {
         if (_datosList.Count > 0)
         {
             using var scope = _serviceProvider.CreateScope();
             var datosRepository = scope.ServiceProvider.GetRequiredService<IDatosRepository>();
 
-            await datosRepository.BulkInsertDatosAsync(_datosList);
+            await datosRepository.BulkInsertDatosAsync(_datosList, cancellationToken);
             _datosList.Clear();
-            Console.WriteLine("Mensajes insertados en la base de datos.");
         }
     }
 

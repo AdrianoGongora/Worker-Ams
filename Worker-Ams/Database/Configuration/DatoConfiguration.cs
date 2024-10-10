@@ -15,7 +15,9 @@ public class DatoConfiguration : IEntityTypeConfiguration<Dato>
             .HasForeignKey(o => o.MotorId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.Property(u => u.Value).HasMaxLength(200);
+        builder.Property(u => u.Value)
+           .HasColumnType("decimal(18,16)")
+           .IsRequired();
 
         builder.Property(u => u.Axis).HasMaxLength(200);
 
