@@ -45,7 +45,7 @@ builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
 builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("Kafka"));
 
-builder.Services.AddHostedService<Consumer>();
+// builder.Services.AddHostedService<Consumer>();
 
 var app = builder.Build();
 

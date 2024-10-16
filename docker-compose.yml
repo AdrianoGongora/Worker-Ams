@@ -1,9 +1,30 @@
 services:
+  nginx:
+    restart: always
+    image: nginx:alpine
+    ports:
+      - 80:80
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - worker-ams
+
+  # traefik:
+  #   image: traefik:latest
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   volumes:
+  #     - /run/docker.sock:/run/docker.sock
+  #     - ./traefik.yaml:/traefik.yaml
+  #     - ./tls.yaml:/tls.yaml
+  #   container_name: traefik
+  #   restart: always
+
   worker.database:
     image: postgres:latest
     container_name: worker.Database
     environment:
-      - DATABASE_HOST=127.0.0.1
       - POSTGRES_DB=ams
       - POSTGRES_USER=worker
       - POSTGRES_PASSWORD=pass123456
@@ -14,10 +35,8 @@ services:
 
   worker-ams:
     image: ${DOCKER_REGISTRY-}workerams
-    build:
-      context: .
-      dockerfile: Worker-Ams/Dockerfile
     depends_on:
-      worker.database:
-        condition: service_started
+      - worker.database
+    deploy:
+      replicas: 2
 
