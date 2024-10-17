@@ -62,7 +62,9 @@ public static class MotorEndpoints
             var motores = await motorRepository.GetMotors();
 
             return Results.Ok(motores);
-        }).WithTags(Tags.Motores);
+        })
+        .RequireAuthorization()
+        .WithTags(Tags.Motores);
 
         app.MapGet("motores/{motorId}", async (
             int motorId,
