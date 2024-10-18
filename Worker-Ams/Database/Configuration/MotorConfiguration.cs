@@ -10,6 +10,11 @@ public class MotorConfiguration : IEntityTypeConfiguration<Motor>
     {
         builder.HasKey(u => u.Id);
 
+        builder.HasOne<User>()
+            .WithMany(p => p.Motores)
+            .HasForeignKey(o => o.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Property(u => u.Nombre).HasMaxLength(200);
 
         builder.Property(u => u.Descripcion).HasMaxLength(200);

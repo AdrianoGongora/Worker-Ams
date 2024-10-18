@@ -12,21 +12,6 @@ namespace Worker_Ams.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Motors",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Nombre = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Descripcion = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Tipo = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Motors", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -40,6 +25,28 @@ namespace Worker_Ams.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Motors",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    Nombre = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Descripcion = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    Tipo = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Motors", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Motors_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -71,6 +78,11 @@ namespace Worker_Ams.Migrations
                 column: "MotorId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Motors_UserId",
+                table: "Motors",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
                 table: "Users",
                 column: "Email",
@@ -84,10 +96,10 @@ namespace Worker_Ams.Migrations
                 name: "Datos");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Motors");
 
             migrationBuilder.DropTable(
-                name: "Motors");
+                name: "Users");
         }
     }
 }

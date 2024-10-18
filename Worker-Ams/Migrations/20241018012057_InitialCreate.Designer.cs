@@ -11,7 +11,7 @@ using Worker_Ams.Database;
 namespace Worker_Ams.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241010210207_InitialCreate")]
+    [Migration("20241018012057_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -50,7 +50,7 @@ namespace Worker_Ams.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal>("Value")
-                        .HasColumnType("decimal(18,9)");
+                        .HasColumnType("decimal(18,16)");
 
                     b.HasKey("Id");
 
@@ -82,7 +82,12 @@ namespace Worker_Ams.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Motors");
                 });
@@ -133,7 +138,21 @@ namespace Worker_Ams.Migrations
 
             modelBuilder.Entity("Worker_Ams.Entities.Motor", b =>
                 {
+                    b.HasOne("Worker_Ams.Entities.User", null)
+                        .WithMany("Motores")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Worker_Ams.Entities.Motor", b =>
+                {
                     b.Navigation("Datos");
+                });
+
+            modelBuilder.Entity("Worker_Ams.Entities.User", b =>
+                {
+                    b.Navigation("Motores");
                 });
 #pragma warning restore 612, 618
         }

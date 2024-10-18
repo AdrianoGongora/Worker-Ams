@@ -2,6 +2,7 @@ namespace Worker_Ams.Entities;
 
 public sealed class Motor
 {
+    public int UserId { get; set; }
     private readonly List<Dato> _datos = [];
     public int Id { get; set; }
     public string Nombre { get; set; } = string.Empty;

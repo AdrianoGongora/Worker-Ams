@@ -17,6 +17,7 @@ public static class MotorEndpoints
 
             var motor = new Motor
             {
+                UserId = request.UserId,
                 Nombre = request.Nombre,
                 Descripcion = request.Descripcion,
                 Tipo = request.Tipo,
@@ -55,11 +56,44 @@ public static class MotorEndpoints
         .RequireAuthorization()
         .WithTags(Tags.Motores);
 
-        app.MapGet("api/motores", async (
+        app.MapGet("api/motores/{userId}", async (
+            int userId,
             IMotorRepository motorRepository) =>
         {
+            var motores = await motorRepository.GetMotors(userId);
 
-            var motores = await motorRepository.GetMotors();
+            return Results.Ok(motores);
+        })
+        .WithTags(Tags.Motores)
+        .RequireAuthorization();
+
+        app.MapGet("api/motores/aceleration/{motorId}", async (
+            int motorId,
+            IMotorRepository motorRepository) =>
+        {
+            var motores = await motorRepository.GetAccelerationMotors(motorId);
+
+            return Results.Ok(motores);
+        })
+        .RequireAuthorization()
+        .WithTags(Tags.Motores);
+
+        app.MapGet("api/motores/velocidad/{motorId}", async (
+            int motorId,
+            IMotorRepository motorRepository) =>
+        {
+            var motores = await motorRepository.GetVelocidadMotors(motorId);
+
+            return Results.Ok(motores);
+        })
+        .RequireAuthorization()
+        .WithTags(Tags.Motores);
+
+        app.MapGet("api/motores/temperatura/{motorId}", async (
+            int motorId,
+            IMotorRepository motorRepository) =>
+        {
+            var motores = await motorRepository.GetTemperatureMotors(motorId);
 
             return Results.Ok(motores);
         })
@@ -70,7 +104,6 @@ public static class MotorEndpoints
             int motorId,
             IMotorRepository motorRepository) =>
         {
-
             var motorExists = await motorRepository.GetById(motorId);
 
             if (motorExists is null)
@@ -88,7 +121,6 @@ public static class MotorEndpoints
             IMotorRepository motorRepository,
             CancellationToken cancellationToken) =>
         {
-
             var motorExists = await motorRepository.GetById(motorId);
 
             if (motorExists is null)
