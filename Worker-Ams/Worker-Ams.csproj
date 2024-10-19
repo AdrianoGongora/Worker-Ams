@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+	  <PackageReference Include="DotNetEnv" Version="3.1.1" />
 	  <PackageReference Include="EFCore.BulkExtensions" Version="8.1.1" />
 	  <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.6" />
 	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />

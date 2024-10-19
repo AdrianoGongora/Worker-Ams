@@ -9,6 +9,8 @@ using Worker_Ams.Repositories.Users;
 using Worker_Ams.Services.Jwt;
 using Worker_Ams.Services.Kafka;
 
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 const string cors = "Cors";
 
@@ -43,7 +45,11 @@ builder.Services.AddScoped<IMotorRepository, MotorRepository>();
 builder.Services.AddScoped<IDatosRepository, DatosRepository>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
-builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("Kafka"));
+builder.Services.Configure<KafkaSettings>(options =>
+{
+    options.BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_HOST") ?? "localhost:9092";
+    options.Topic = Environment.GetEnvironmentVariable("KAFKA_TOPIC") ?? "test-topic";
+});
 
 // builder.Services.AddHostedService<Consumer>();
 
