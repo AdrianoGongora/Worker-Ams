@@ -14,7 +14,13 @@ DotNetEnv.Env.TraversePath().Load();
 var builder = WebApplication.CreateBuilder(args);
 const string cors = "Cors";
 
-string databaseConnectionString = builder.Configuration.GetConnectionString("Database")!;
+string PG_HOST = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost";
+string PG_PORT = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5432";
+string PG_DB = Environment.GetEnvironmentVariable("POSTGRES_DB")!;
+string PG_USER = Environment.GetEnvironmentVariable("POSTGRES_USER")!;
+string PG_PASSWORD = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")!;
+
+string databaseConnectionString = $"Server={PG_HOST};Port={PG_PORT};Database={PG_DB};Username={PG_USER};Password={PG_PASSWORD};Include Error Detail=true";
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen()
