@@ -51,7 +51,7 @@ builder.Services.Configure<KafkaSettings>(options =>
     options.Topic = Environment.GetEnvironmentVariable("KAFKA_TOPIC") ?? "test-topic";
 });
 
-// builder.Services.AddHostedService<Consumer>();
+builder.Services.AddHostedService<Consumer>();
 
 var app = builder.Build();
 
