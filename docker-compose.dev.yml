@@ -2,13 +2,13 @@ services:
   worker.db:
     image: postgres:latest
     environment:
-      - POSTGRES_DB=${PG_DB}
-      - POSTGRES_USER=${PG_USER}
-      - POSTGRES_PASSWORD=${PG_PASSWORD}
+      - POSTGRES_DB=${PG_DB:-ams}
+      - POSTGRES_USER=${PG_USER:-worker}
+      - POSTGRES_PASSWORD=${PG_PASSWORD:-pass123456}
     ports:
       - 5432:5432
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d ${PG_DB} -U ${PG_USER}"]
+      test: ["CMD-SHELL", "pg_isready -d ${PG_DB:-ams} -U ${PG_USER:-worker}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -18,13 +18,13 @@ services:
       context: .
       dockerfile: Worker-Ams/Dockerfile
     environment: 
-      - POSTGRES_HOST=${PG_HOST}
-      - POSTGRES_PORT=${PG_PORT}
-      - POSTGRES_DB=${PG_DB}
-      - POSTGRES_USER=${PG_USER}
-      - POSTGRES_PASSWORD=${PG_PASSWORD}
-      - KAFKA_HOST=${KAFKA_HOST}
-      - KAFKA_TOPIC=${KAFKA_TOPIC}
+      - POSTGRES_HOST=${PG_HOST:-worker.db}
+      - POSTGRES_PORT=${PG_PORT:-5432}
+      - POSTGRES_DB=${PG_DB:-ams}
+      - POSTGRES_USER=${PG_USER:-worker}
+      - POSTGRES_PASSWORD=${PG_PASSWORD:-pass123456}
+      - KAFKA_HOST=${KAFKA_HOST:-kafka:9092}
+      - KAFKA_TOPIC=${KAFKA_TOPIC:-vibration-topic}
     ports:
       - 8081:8080
     depends_on:
