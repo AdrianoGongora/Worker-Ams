@@ -34,6 +34,12 @@ public static class UserEndpoints
 
         }).WithTags(Tags.Users);
 
+        app.MapGet("api/auth", () =>
+        {
+            return Results.Ok();
+        })
+        .RequireAuthorization();
+
         app.MapPost("api/register", async (
             RegisterRequest request,
             IUserRepository userRepository,

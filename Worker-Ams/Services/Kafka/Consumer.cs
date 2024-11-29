@@ -24,7 +24,7 @@ public class Consumer : BackgroundService
         {
             BootstrapServers = _kafkaSettings.BootstrapServers,
             GroupId = "test-bobis",
-            AutoOffsetReset = AutoOffsetReset.Earliest
+            AutoOffsetReset = AutoOffsetReset.Latest
         };
 
         _consumer = new ConsumerBuilder<Ignore, string>(consumerConfig).Build();

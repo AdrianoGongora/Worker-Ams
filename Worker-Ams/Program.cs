@@ -9,10 +9,18 @@ using Worker_Ams.Repositories.Users;
 using Worker_Ams.Services.Jwt;
 using Worker_Ams.Services.Kafka;
 
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 const string cors = "Cors";
 
-string databaseConnectionString = builder.Configuration.GetConnectionString("Database")!;
+string PG_HOST = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost";
+string PG_PORT = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5432";
+string PG_DB = Environment.GetEnvironmentVariable("POSTGRES_DB")!;
+string PG_USER = Environment.GetEnvironmentVariable("POSTGRES_USER")!;
+string PG_PASSWORD = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")!;
+
+string databaseConnectionString = $"Server={PG_HOST};Port={PG_PORT};Database={PG_DB};Username={PG_USER};Password={PG_PASSWORD};Include Error Detail=true";
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen()
@@ -43,9 +51,13 @@ builder.Services.AddScoped<IMotorRepository, MotorRepository>();
 builder.Services.AddScoped<IDatosRepository, DatosRepository>();
 builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
-builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("Kafka"));
+builder.Services.Configure<KafkaSettings>(options =>
+{
+    options.BootstrapServers = Environment.GetEnvironmentVariable("KAFKA_HOST") ?? "localhost:9092";
+    options.Topic = Environment.GetEnvironmentVariable("KAFKA_TOPIC") ?? "test-topic";
+});
 
-// builder.Services.AddHostedService<Consumer>();
+builder.Services.AddHostedService<Consumer>();
 
 var app = builder.Build();
 

@@ -67,7 +67,7 @@ public static class MotorEndpoints
         .WithTags(Tags.Motores)
         .RequireAuthorization();
 
-        app.MapGet("api/motores/aceleration/{motorId}", async (
+        app.MapGet("api/motores/aceleracion/{motorId}", async (
             int motorId,
             IMotorRepository motorRepository) =>
         {
